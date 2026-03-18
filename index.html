@@ -2,177 +2,92 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Simulateur Appareil Photo</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  /* ── Tablette 10 pouces paysage (~1280×800) ── */
   html, body {
     width: 100%; height: 100%;
     background: #1e1e1e;
     display: flex; align-items: center; justify-content: center;
     font-family: 'Courier New', monospace;
     overflow: hidden;
+    touch-action: manipulation;
   }
-
-  /* Corps principal : boîtier façon reflex, plein écran tablette */
   .camera-body {
     background: #1a1a1a;
     border-radius: 16px 48px 16px 16px;
     border: 2px solid #3a3a3a;
     box-shadow: inset 0 0 0 1px #444, 0 24px 80px rgba(0,0,0,0.9);
-    width: 960px; height: 680px;
+    width: min(960px, 98vw);
+    height: min(680px, 97vh);
     padding: 18px 20px 14px 20px;
     display: flex; flex-direction: column; gap: 10px;
   }
-
-  /* Barre du haut : grip + marque + molette */
-  .camera-top {
-    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-  }
-  .grip-bump {
-    width: 18px; height: 18px; background: #222; border-radius: 50%;
-    border: 2px solid #555; flex-shrink: 0;
-  }
+  .camera-top { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .grip-bump { width: 18px; height: 18px; background: #222; border-radius: 50%; border: 2px solid #555; flex-shrink: 0; }
   .brand { color: #ddd; font-size: 15px; letter-spacing: 4px; font-weight: bold; }
   .model { font-size: 10px; color: #555; letter-spacing: 2px; margin-left: 2px; }
-  .mode-dial {
-    margin-left: auto; background: #2a2a2a; border: 1px solid #555; border-radius: 50%;
-    width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
-    color: #f90; font-size: 11px; font-weight: bold; letter-spacing: 1px;
-  }
-
-  /* Zone centrale : écran + panneau de contrôle côte à côte */
-  .main-area {
-    flex: 1; display: flex; gap: 14px; min-height: 0;
-  }
-
-  /* ── Colonne gauche : écran LCD ── */
-  .screen-col {
-    flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0;
-  }
-  .screen-area {
-    background: #0a0a0a; border: 2px solid #222; border-radius: 8px;
-    padding: 7px; flex: 1;
-  }
-  .lcd-frame {
-    background: #111; border-radius: 5px; overflow: hidden;
-    position: relative; width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-  }
+  .mode-dial { margin-left: auto; background: #2a2a2a; border: 1px solid #555; border-radius: 50%; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; color: #f90; font-size: 11px; font-weight: bold; letter-spacing: 1px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .mode-dial:active { background: #3a3a3a; border-color: #f90; }
+  .main-area { flex: 1; display: flex; gap: 14px; min-height: 0; }
+  .screen-col { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .screen-area { background: #0a0a0a; border: 2px solid #222; border-radius: 8px; padding: 7px; flex: 1; }
+  .lcd-frame { background: #111; border-radius: 5px; overflow: hidden; position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
   #photoCanvas { width: 100%; height: 100%; object-fit: cover; display: block; }
   .overlay-hud { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-  .hud-top {
-    position: absolute; top: 8px; left: 10px; right: 10px;
-    display: flex; justify-content: space-between; align-items: flex-start;
-  }
-  .hud-bottom {
-    position: absolute; bottom: 8px; left: 10px; right: 10px;
-    display: flex; justify-content: space-between; align-items: flex-end;
-  }
-  .hud-val {
-    background: rgba(0,0,0,0.68); color: #f90; font-family: 'Courier New', monospace;
-    font-size: 13px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,165,0,0.3);
-  }
+  .hud-top { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .hud-bottom { position: absolute; bottom: 8px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .hud-val { background: rgba(0,0,0,0.68); color: #f90; font-family: 'Courier New', monospace; font-size: 13px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,165,0,0.3); }
   .hud-val span { color: #fff; font-size: 10px; }
-  .focus-box {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    width: 72px; height: 72px; border: 1.5px solid rgba(255,100,0,0.7);
-  }
-  .focus-box::before, .focus-box::after {
-    content: ''; position: absolute; width: 10px; height: 10px;
-    border-color: #f90; border-style: solid;
-  }
+  .focus-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 72px; height: 72px; border: 1.5px solid rgba(255,100,0,0.7); }
+  .focus-box::before, .focus-box::after { content: ''; position: absolute; width: 10px; height: 10px; border-color: #f90; border-style: solid; }
   .focus-box::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
   .focus-box::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
-  .expo-bar {
-    position: absolute; bottom: 34px; left: 10px; right: 10px;
-    display: flex; align-items: center; gap: 6px;
-  }
+  .expo-bar { position: absolute; bottom: 34px; left: 10px; right: 10px; display: flex; align-items: center; gap: 6px; }
   .expo-label { color: rgba(255,165,0,0.7); font-size: 9px; }
   .expo-scale { flex: 1; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; position: relative; }
-  .expo-indicator {
-    position: absolute; top: -4px; width: 11px; height: 11px; background: #f90;
-    border-radius: 50%; transform: translateX(-50%); transition: left 0.3s;
-  }
-
-  /* Boîte diagnostic sous l'écran */
-  .diagnosis-box {
-    background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 5px;
-    padding: 9px 12px; min-height: 72px; flex-shrink: 0;
-  }
+  .expo-indicator { position: absolute; top: -4px; width: 11px; height: 11px; background: #f90; border-radius: 50%; transform: translateX(-50%); transition: left 0.3s; }
+  .diagnosis-box { background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 5px; padding: 9px 12px; min-height: 72px; flex-shrink: 0; }
   .diagnosis-label { color: #555; font-size: 9px; letter-spacing: 2px; margin-bottom: 5px; }
   .diagnosis-text  { font-size: 12px; line-height: 1.65; }
   .diag-good { color: #4f4; }
   .diag-warn { color: #fa0; }
   .diag-bad  { color: #f44; }
-
-  /* ── Colonne droite : contrôles ── */
-  .ctrl-col {
-    width: 220px; flex-shrink: 0;
-    display: flex; flex-direction: column; gap: 10px;
-  }
-
-  /* Panneau des 3 molettes */
-  .controls-panel {
-    background: #111; border-radius: 6px; padding: 14px 12px;
-    display: flex; flex-direction: column; gap: 16px; flex: 1;
-  }
+  .ctrl-col { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+  .controls-panel { background: #111; border-radius: 6px; padding: 14px 12px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
   .ctrl-group { display: flex; flex-direction: column; gap: 6px; }
-  .ctrl-label {
-    color: #777; font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-    border-bottom: 1px solid #222; padding-bottom: 4px;
-  }
-  .ctrl-value-display {
-    background: #000; border: 1px solid #333; border-radius: 4px;
-    color: #f90; font-size: 22px; font-weight: bold; text-align: center;
-    padding: 8px 6px; display: flex; align-items: center; justify-content: center;
-  }
+  .ctrl-label { color: #777; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid #222; padding-bottom: 4px; }
+  .ctrl-value-display { background: #000; border: 1px solid #333; border-radius: 4px; color: #f90; font-size: 22px; font-weight: bold; text-align: center; padding: 8px 6px; display: flex; align-items: center; justify-content: center; user-select: none; }
   .ctrl-buttons { display: flex; gap: 4px; }
   .ctrl-btn {
     flex: 1; background: #222; border: 1px solid #444; color: #ccc;
     font-size: 22px; border-radius: 5px; cursor: pointer;
-    padding: 10px 0; transition: background 0.1s; font-family: monospace;
+    padding: 10px 0; font-family: monospace;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
-  .ctrl-btn:hover  { background: #333; }
-  .ctrl-btn:active { background: #4a4a4a; transform: scale(0.95); }
-
-  /* Barre du bas droite : batterie + déclencheur + compteur */
-  .bottom-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 4px 2px; flex-shrink: 0;
-  }
+  .ctrl-btn:active { background: #4a4a4a; }
+  .bottom-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px; flex-shrink: 0; }
   .shutter-btn {
-    width: 64px; height: 64px; border-radius: 50%; background: #333; border: 3px solid #666;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.08s; touch-action: manipulation;
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #333; border: 3px solid #666; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
   }
-  .shutter-btn:hover  { background: #444; border-color: #999; }
-  .shutter-btn:active { transform: scale(0.90); background: #555; }
-  .shutter-inner { width: 40px; height: 40px; border-radius: 50%; background: #555; border: 2px solid #777; }
+  .shutter-btn:active { background: #555; }
+  .shutter-inner { width: 40px; height: 40px; border-radius: 50%; background: #555; border: 2px solid #777; pointer-events: none; }
   .battery { color: #4a4; font-size: 10px; display: flex; align-items: center; gap: 4px; }
   .batt-icon { width: 22px; height: 12px; border: 1px solid #4a4; border-radius: 2px; position: relative; padding: 2px; display: flex; }
   .batt-fill { background: #4a4; border-radius: 1px; width: 75%; }
   .batt-tip  { width: 3px; height: 6px; background: #4a4; border-radius: 0 1px 1px 0; position: absolute; right: -4px; top: 50%; transform: translateY(-50%); }
-
-  /* ── OVERLAY ── */
-  #shutterOverlay {
-    display: none; position: fixed; inset: 0; z-index: 100;
-    background: rgba(0,0,0,0.78);
-    align-items: center; justify-content: center;
-  }
+  #shutterOverlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.78); align-items: center; justify-content: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   #shutterOverlay.show { display: flex; }
-  .shutter-card {
-    background: #111; border: 2px solid #444; border-radius: 16px;
-    padding: 36px 72px; text-align: center;
-    animation: popIn 0.18s cubic-bezier(.34,1.56,.64,1);
-  }
-  @keyframes popIn {
-    from { transform: scale(0.6); opacity: 0; }
-    to   { transform: scale(1);   opacity: 1; }
-  }
+  .shutter-card { background: #111; border: 2px solid #444; border-radius: 16px; padding: 36px 72px; text-align: center; animation: popIn 0.18s cubic-bezier(.34,1.56,.64,1); pointer-events: none; }
+  @keyframes popIn { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .diap-label   { color: #666; font-size: 10px; letter-spacing: 3px; margin-bottom: 14px; }
   .diap-sub     { font-size: 15px; font-weight: bold; letter-spacing: 1px; margin-bottom: 18px; }
   .diap-sub.good { color: #4f4; }
@@ -182,24 +97,18 @@
   .diap-diags .diag-warn { color: #fa0; }
   .diap-diags .diag-bad  { color: #f55; }
   .close-hint   { color: #444; font-size: 10px; margin-top: 20px; letter-spacing: 1px; }
+  .code-reveal  { font-size: 120px; font-weight: bold; color: #4f4; letter-spacing: 8px; text-align: center; margin-bottom: 10px; text-shadow: 0 0 40px rgba(80,255,80,0.6); animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1); }
 </style>
 </head>
 <body>
-
 <div class="camera-body">
-
-  <!-- Barre du haut -->
   <div class="camera-top">
     <div class="grip-bump"></div>
     <div class="brand">CNAMEX-32</div>
     <div class="model">DIGITAL SLR</div>
-    <div class="mode-dial">M</div>
+    <div class="mode-dial" id="fullscreenBtn" title="Plein écran">M</div>
   </div>
-
-  <!-- Zone principale : écran gauche + contrôles droite -->
   <div class="main-area">
-
-    <!-- Colonne gauche : LCD + diagnostic -->
     <div class="screen-col">
       <div class="screen-area">
         <div class="lcd-frame">
@@ -224,43 +133,38 @@
           </div>
         </div>
       </div>
-
-      <!-- Diagnostic -->
       <div class="diagnosis-box">
         <div class="diagnosis-label">ANALYSE &#9658; RÉSULTAT</div>
         <div class="diagnosis-text" id="diagText"></div>
       </div>
     </div>
-
-    <!-- Colonne droite : contrôles + déclencheur -->
     <div class="ctrl-col">
       <div class="controls-panel">
         <div class="ctrl-group">
           <div class="ctrl-label">ISO</div>
           <div class="ctrl-value-display" id="isoDisplay">25600</div>
           <div class="ctrl-buttons">
-            <button class="ctrl-btn" onclick="adjust('iso',-1)">&#8722;</button>
-            <button class="ctrl-btn" onclick="adjust('iso',1)">+</button>
+            <button class="ctrl-btn" id="iso-minus">&#8722;</button>
+            <button class="ctrl-btn" id="iso-plus">+</button>
           </div>
         </div>
         <div class="ctrl-group">
           <div class="ctrl-label">Vitesse</div>
           <div class="ctrl-value-display" id="speedDisplay">1/2</div>
           <div class="ctrl-buttons">
-            <button class="ctrl-btn" onclick="adjust('speed',-1)">&#8722;</button>
-            <button class="ctrl-btn" onclick="adjust('speed',1)">+</button>
+            <button class="ctrl-btn" id="speed-minus">&#8722;</button>
+            <button class="ctrl-btn" id="speed-plus">+</button>
           </div>
         </div>
         <div class="ctrl-group">
           <div class="ctrl-label">Ouverture</div>
           <div class="ctrl-value-display" id="apertureDisplay">f/32</div>
           <div class="ctrl-buttons">
-            <button class="ctrl-btn" onclick="adjust('aperture',-1)">&#8722;</button>
-            <button class="ctrl-btn" onclick="adjust('aperture',1)">+</button>
+            <button class="ctrl-btn" id="aperture-minus">&#8722;</button>
+            <button class="ctrl-btn" id="aperture-plus">+</button>
           </div>
         </div>
       </div>
-
       <div class="bottom-bar">
         <div class="battery">
           <div class="batt-icon"><div class="batt-fill"></div><div class="batt-tip"></div></div>
@@ -272,11 +176,9 @@
         <div style="color:#888;font-size:10px;">RAW&#183;47</div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- Overlay résultat -->
 <div id="shutterOverlay">
   <div class="shutter-card">
     <div class="diap-label">ANALYSE DE LA PRISE DE VUE</div>
@@ -287,42 +189,29 @@
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════
-   10 PALIERS PAR PARAMÈTRE
-   Bonne combinaison : ISO 800 (idx 4) · 1/1000s (idx 7) · f/2.8 (idx 2)
-══════════════════════════════════════════════════ */
 const isoValues      = [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600];
-const speedValues    = [2, 4, 8, 15, 30, 60, 250, 1000, 2000, 8000];  // dénominateurs
+const speedValues    = [2, 4, 8, 15, 30, 60, 250, 1000, 2000, 8000];
 const apertureValues = [1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22, 32];
-
-const GOOD = { iso: 4, speed: 7, aperture: 2 };  // 800 · 1/1000 · f/2.8
-
-// Démarrage sur la pire combinaison
+const GOOD = { iso: 4, speed: 7, aperture: 2 };
 let state = { iso: 9, speed: 0, aperture: 9 };
 
-/* ── IMAGE ── */
 const img = new Image();
 img.src = 'crazy-hiker-jumping.jpg';
-img.onload  = () => render();
-img.onerror = () => render();
+img.onload  = render;
+img.onerror = render;
 
-/* ══════════════════════════
-   SON DE DÉCLENCHEUR
-══════════════════════════ */
 const shutterAudio = new Audio('obturateur.mp3');
 shutterAudio.preload = 'auto';
 
 function playShutter(isGood) {
   shutterAudio.currentTime = 0;
-  shutterAudio.play().catch(() => {});
-
-  // Bip léger de confirmation si bonne expo
+  shutterAudio.play().catch(function(){});
   if (isGood) {
     try {
-      const actx = new (window.AudioContext || window.webkitAudioContext)();
-      const t = actx.currentTime + 0.3;
-      const osc = actx.createOscillator();
-      const g   = actx.createGain();
+      var actx = new (window.AudioContext || window.webkitAudioContext)();
+      var t = actx.currentTime + 0.3;
+      var osc = actx.createOscillator();
+      var g = actx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(1350, t);
       g.gain.setValueAtTime(0.18, t);
@@ -333,88 +222,83 @@ function playShutter(isGood) {
   }
 }
 
-/* ══════════════════════════
-/* ══════════════════════════
-   DÉCLENCHEUR + OVERLAY
-══════════════════════════ */
-document.getElementById('shutterBtn').addEventListener('click', () => {
-  const iso      = isoValues[state.iso];
-  const speed    = speedValues[state.speed];
-  const aperture = apertureValues[state.aperture];
-  const isGood   = state.iso === GOOD.iso && state.speed === GOOD.speed && state.aperture === GOOD.aperture;
-
-  playShutter(isGood);
-
-  const subEl   = document.getElementById('diapSub');
-  const diagsEl = document.getElementById('diapDiags');
-
-  if (isGood) {
-    subEl.textContent = '✶ PARAMÈTRES CORRECTS ✶';
-    subEl.className   = 'diap-sub good';
-    diagsEl.innerHTML = '<span class="diag-good">◆ ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
-  } else {
-    subEl.textContent = 'MAUVAIS PARAMÈTRES DE PRISE DE VUE';
-    subEl.className   = 'diap-sub bad';
-    const diags = buildDiags(iso, speed, aperture);
-    diagsEl.innerHTML = diags.map(d => '<span class="' + d.c + '">▸ ' + d.t + '</span>').join('<br>');
-  }
-
-  document.getElementById('shutterOverlay').classList.add('show');
-});
-
-document.getElementById('shutterOverlay').addEventListener('click', () => {
-  document.getElementById('shutterOverlay').classList.remove('show');
-});
-
-/* ══════════════════════════
-   CONTRÔLES
-══════════════════════════ */
+/* ADJUST — déclaré avant tout binding */
 function adjust(param, dir) {
-  const max = { iso: 9, speed: 9, aperture: 9 };
-  state[param] = Math.max(0, Math.min(max[param], state[param] + dir));
+  state[param] = Math.max(0, Math.min(9, state[param] + dir));
   render();
 }
 
-/* ══════════════════════════
-   RENDU CANVAS
-══════════════════════════ */
-function render() {
-  const iso      = isoValues[state.iso];
-  const speed    = speedValues[state.speed];
-  const aperture = apertureValues[state.aperture];
+/* BINDING — pointerdown : universel souris + stylet + doigt, sans délai 300ms */
+function bindBtn(id, param, dir) {
+  document.getElementById(id).addEventListener('pointerdown', function(e) {
+    e.preventDefault();
+    adjust(param, dir);
+  });
+}
+bindBtn('iso-minus',      'iso',      -1);
+bindBtn('iso-plus',       'iso',      +1);
+bindBtn('speed-minus',    'speed',    -1);
+bindBtn('speed-plus',     'speed',    +1);
+bindBtn('aperture-minus', 'aperture', -1);
+bindBtn('aperture-plus',  'aperture', +1);
 
+document.getElementById('shutterBtn').addEventListener('pointerdown', function(e) {
+  e.preventDefault();
+  var iso      = isoValues[state.iso];
+  var speed    = speedValues[state.speed];
+  var aperture = apertureValues[state.aperture];
+  var isGood   = state.iso === GOOD.iso && state.speed === GOOD.speed && state.aperture === GOOD.aperture;
+  playShutter(isGood);
+  var subEl   = document.getElementById('diapSub');
+  var diagsEl = document.getElementById('diapDiags');
+  if (isGood) {
+    subEl.textContent = '✶ PARAMÈTRES CORRECTS ✶';
+    subEl.className   = 'diap-sub good';
+    diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
+  } else {
+    subEl.textContent = 'MAUVAIS PARAMÈTRES DE PRISE DE VUE';
+    subEl.className   = 'diap-sub bad';
+    var diags = buildDiags(iso, speed, aperture);
+    diagsEl.innerHTML = diags.map(function(d){ return '<span class="' + d.c + '">▸ ' + d.t + '</span>'; }).join('<br>');
+  }
+  document.getElementById('shutterOverlay').classList.add('show');
+});
+
+document.getElementById('shutterOverlay').addEventListener('pointerdown', function(e) {
+  e.preventDefault();
+  this.classList.remove('show');
+});
+
+/* RENDU */
+function render() {
+  var iso      = isoValues[state.iso];
+  var speed    = speedValues[state.speed];
+  var aperture = apertureValues[state.aperture];
   document.getElementById('isoDisplay').textContent      = iso;
   document.getElementById('speedDisplay').textContent    = '1/' + speed;
   document.getElementById('apertureDisplay').textContent = 'f/' + aperture;
   document.getElementById('hudISO').textContent          = iso;
   document.getElementById('hudSpeed').textContent        = speed;
   document.getElementById('hudAperture').textContent     = aperture;
-
-  const c   = document.getElementById('photoCanvas');
+  var c   = document.getElementById('photoCanvas');
   c.width   = c.parentElement.offsetWidth  || 600;
   c.height  = c.parentElement.offsetHeight || 400;
-  const ctx = c.getContext('2d');
-
-  // EV relatif à (ISO 800, 1/1000s, f/2.8)
-  const isoEV      =  Math.log2(iso / 800);
-  const speedEV    = -Math.log2(speed / 1000);
-  const apertureEV =  2 * Math.log2(aperture / 2.8);
-  const totalEV    = isoEV + speedEV + apertureEV;
-
-  // HUD compteur EV
-  const evPct = 50 + (totalEV / 3) * 50;
+  var ctx = c.getContext('2d');
+  var isoEV      =  Math.log2(iso / 800);
+  var speedEV    = -Math.log2(speed / 1000);
+  var apertureEV = -2 * Math.log2(aperture / 2.8);
+  var totalEV    = isoEV + speedEV + apertureEV;
+  var evPct = 50 + (totalEV / 3) * 50;
   document.getElementById('expoIndicator').style.left = Math.max(3, Math.min(97, evPct)) + '%';
-  const evColor = Math.abs(totalEV) < 0.7 ? '#4f4' : Math.abs(totalEV) < 1.5 ? '#fa0' : '#f44';
+  var evColor = Math.abs(totalEV) < 0.7 ? '#4f4' : Math.abs(totalEV) < 1.5 ? '#fa0' : '#f44';
   document.getElementById('hudMeter').textContent = '\u25aa ' + (totalEV >= 0 ? '+' : '') + totalEV.toFixed(1) + ' EV';
   document.getElementById('hudMeter').style.color = evColor;
   document.getElementById('hudHist').style.color  = evColor;
-
-  ctx.clearRect(0, 0, c.width, c.height);
-
+  /* Fond noir systématique — évite le canvas transparent qui simule une fausse surexpo */
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, c.width, c.height);
   if (img.complete && img.naturalWidth > 0) {
-
-    /* 1. FLOU DE BOUGÉ — déclenché dès que la vitesse est insuffisante */
-    let steps = 0, shift = 0;
+    var steps = 0, shift = 0;
     if      (speed <= 2)   { steps = 40; shift = 44; }
     else if (speed <= 4)   { steps = 33; shift = 34; }
     else if (speed <= 8)   { steps = 26; shift = 25; }
@@ -422,20 +306,14 @@ function render() {
     else if (speed <= 30)  { steps = 14; shift = 11; }
     else if (speed <= 60)  { steps = 9;  shift = 7;  }
     else if (speed <= 250) { steps = 5;  shift = 4;  }
-
     if (steps > 0) {
-      ctx.save();
-      ctx.globalAlpha = 1 / steps;
-      for (let i = 0; i < steps; i++) {
-        ctx.drawImage(img, i * shift / steps, 0, c.width, c.height);
-      }
+      ctx.save(); ctx.globalAlpha = 1 / steps;
+      for (var i = 0; i < steps; i++) { ctx.drawImage(img, i * shift / steps, 0, c.width, c.height); }
       ctx.restore();
     } else {
       ctx.drawImage(img, 0, 0, c.width, c.height);
     }
-
-    /* 2. DIFFRACTION / profondeur de champ */
-    let dBlur = 0;
+    var dBlur = 0;
     if      (aperture >= 32) dBlur = 10;
     else if (aperture >= 22) dBlur = 7;
     else if (aperture >= 16) dBlur = 4;
@@ -445,119 +323,113 @@ function render() {
       ctx.drawImage(img, 0, 0, c.width, c.height);
       ctx.restore(); ctx.filter = 'none';
     }
-
-    /* 3. EXPOSITION */
     ctx.save();
     if (totalEV < -0.35) {
-      ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.95, Math.abs(totalEV) * 0.21) + ')';
+      /* Coefficient augmenté : 0.38 → noir total atteint à ~-2.5 EV */
+      ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.97, Math.abs(totalEV) * 0.38) + ')';
       ctx.fillRect(0, 0, c.width, c.height);
     } else if (totalEV > 0.35) {
       ctx.fillStyle = 'rgba(255,255,255,' + Math.min(0.95, totalEV * 0.22) + ')';
       ctx.fillRect(0, 0, c.width, c.height);
     }
     ctx.restore();
-
-    /* 4. GRAIN ISO */
-    const grainMap = { 1600:16, 3200:30, 6400:50, 12800:78, 25600:120 };
-    const grain = grainMap[iso] || 0;
+    var grainMap = { 1600:16, 3200:30, 6400:50, 12800:78, 25600:120 };
+    var grain = grainMap[iso] || 0;
     if (grain > 0) {
-      const id = ctx.getImageData(0, 0, c.width, c.height);
-      const d  = id.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const g = (Math.random() - 0.5) * grain;
-        d[i]   = Math.min(255, Math.max(0, d[i]   + g));
-        d[i+1] = Math.min(255, Math.max(0, d[i+1] + g));
-        d[i+2] = Math.min(255, Math.max(0, d[i+2] + g));
+      var id = ctx.getImageData(0, 0, c.width, c.height);
+      var d  = id.data;
+      for (var j = 0; j < d.length; j += 4) {
+        var g2 = (Math.random() - 0.5) * grain;
+        d[j]   = Math.min(255, Math.max(0, d[j]   + g2));
+        d[j+1] = Math.min(255, Math.max(0, d[j+1] + g2));
+        d[j+2] = Math.min(255, Math.max(0, d[j+2] + g2));
       }
       ctx.putImageData(id, 0, 0);
     }
-
   } else {
     ctx.fillStyle = '#111'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = '#555'; ctx.font = '13px Courier New';
     ctx.fillText('Placez crazy-hiker-jumping.jpg dans le meme dossier', 18, c.height/2);
   }
-
-  // Le diagnostic s'affiche uniquement à l'appui sur l'obturateur
 }
 
-/* ══════════════════════════════════════════════════
-   FONCTION DIAGNOSTIC — appelée uniquement à l'appui obturateur
-   Les valeurs iso/speed/aperture sont rappelées dans chaque message.
-══════════════════════════════════════════════════ */
 function buildDiags(iso, speed, aperture) {
-  const isoEV      =  Math.log2(iso / 800);
-  const speedEV    = -Math.log2(speed / 1000);
-  const apertureEV =  2 * Math.log2(aperture / 2.8);
-  const totalEV    = isoEV + speedEV + apertureEV;
-  const diags = [];
-
-  // Flou de bougé
+  var isoEV      =  Math.log2(iso / 800);
+  var speedEV    = -Math.log2(speed / 1000);
+  var apertureEV = -2 * Math.log2(aperture / 2.8);
+  var totalEV    = isoEV + speedEV + apertureEV;
+  var diags = [];
   if (speed < 1000) {
-    const sev = speed <= 60 ? 'diag-bad' : 'diag-warn';
-    let effet;
-    if      (speed <= 2)   effet = 'Le sujet est totalement fondu, photo inexploitable';
-    else if (speed <= 8)   effet = 'Le sujet est très fortement flou, forme méconnaissable';
-    else if (speed <= 30)  effet = 'Le sujet est flou, mouvement non figé';
-    else if (speed <= 60)  effet = 'Le sujet manque de netteté, légère traînée visible';
-    else if (speed <= 250) effet = 'Légère imprécision sur le contour du sujet en mouvement';
-    else                   effet = 'Risque de micro-flou sur un sujet aussi dynamique';
-    diags.push({c: sev, t: effet + ' — [vitesse : 1/' + speed + 's]'});
+    var sev1 = speed <= 60 ? 'diag-bad' : 'diag-warn';
+    var e1;
+    if      (speed <= 2)   e1 = 'Le sujet est totalement fondu, photo inexploitable';
+    else if (speed <= 8)   e1 = 'Le sujet est très fortement flou, forme méconnaissable';
+    else if (speed <= 30)  e1 = 'Le sujet est flou, mouvement non figé';
+    else if (speed <= 60)  e1 = 'Le sujet manque de netteté, légère traînée visible';
+    else if (speed <= 250) e1 = 'Légère imprécision sur le contour du sujet en mouvement';
+    else                   e1 = 'Risque de micro-flou sur un sujet aussi dynamique';
+    diags.push({c: sev1, t: e1 + ' — [vitesse : 1/' + speed + 's]'});
   } else if (speed > 1000) {
-    diags.push({c:'diag-warn', t:'Vitesse très élevée, triangle d'exposition difficile à équilibrer — [vitesse : 1/' + speed + 's]'});
+    diags.push({c:'diag-warn', t:"Vitesse très élevée, triangle d'exposition difficile à équilibrer — [vitesse : 1/" + speed + 's]'});
   }
-
-  // Profondeur de champ / diffraction
   if (aperture < 2.8) {
-    const effet = aperture <= 1.4
+    var e2 = aperture <= 1.4
       ? 'Profondeur de champ extrêmement réduite, risque fort que le sujet soit hors plan de netteté'
       : 'Profondeur de champ très faible, le sujet peut partiellement sortir du plan net';
-    diags.push({c:'diag-warn', t: effet + ' — [ouverture : f/' + aperture + ']'});
+    diags.push({c:'diag-warn', t: e2 + ' — [ouverture : f/' + aperture + ']'});
   } else if (aperture > 2.8) {
-    const sev = aperture >= 16 ? 'diag-bad' : 'diag-warn';
-    let effet;
-    if      (aperture >= 32) effet = 'Image globalement floue et terne malgré la mise au point (diffraction sévère)';
-    else if (aperture >= 22) effet = 'Piqué dégradé sur l'ensemble de l'image (diffraction)';
-    else if (aperture >= 16) effet = 'Perte de netteté générale visible (début de diffraction)';
-    else if (aperture >= 11) effet = 'L'arrière-plan est aussi net que le sujet, image sans relief';
-    else if (aperture >= 8)  effet = 'Profondeur de champ trop grande, arrière-plan peu séparé du sujet';
-    else                     effet = 'Le sujet manque d'isolation, arrière-plan trop présent';
-    diags.push({c: sev, t: effet + ' — [ouverture : f/' + aperture + ']'});
+    var sev2 = aperture >= 16 ? 'diag-bad' : 'diag-warn';
+    var e3;
+    if      (aperture >= 32) e3 = 'Image globalement floue et terne malgré la mise au point (diffraction sévère)';
+    else if (aperture >= 22) e3 = "Piqué dégradé sur l'ensemble de l'image (diffraction)";
+    else if (aperture >= 16) e3 = 'Perte de netteté générale visible (début de diffraction)';
+    else if (aperture >= 11) e3 = "L'arrière-plan est aussi net que le sujet, image sans relief";
+    else if (aperture >= 8)  e3 = "Profondeur de champ trop grande, arrière-plan peu séparé du sujet";
+    else                     e3 = "Le sujet manque d'isolation, arrière-plan trop présent";
+    diags.push({c: sev2, t: e3 + ' — [ouverture : f/' + aperture + ']'});
   }
-
-  // Bruit numérique
   if (iso < 800) {
-    const sev = iso <= 100 ? 'diag-bad' : 'diag-warn';
-    let effet;
-    if      (iso <= 50)  effet = 'Capteur très peu sensible, image sombre dans ces conditions';
-    else if (iso <= 100) effet = 'Sensibilité insuffisante pour cette lumière, image sous-exposée';
-    else if (iso <= 200) effet = 'Sensibilité un peu faible pour une scène en soirée';
-    else                 effet = 'Sensibilité légèrement insuffisante pour bien exposer';
-    diags.push({c: sev, t: effet + ' — [ISO : ' + iso + ']'});
+    var sev3 = iso <= 100 ? 'diag-bad' : 'diag-warn';
+    var e4;
+    if      (iso <= 50)  e4 = 'Capteur très peu sensible, image sombre dans ces conditions';
+    else if (iso <= 100) e4 = 'Sensibilité insuffisante pour cette lumière, image sous-exposée';
+    else if (iso <= 200) e4 = 'Sensibilité un peu faible pour une scène en soirée';
+    else                 e4 = 'Sensibilité légèrement insuffisante pour bien exposer';
+    diags.push({c: sev3, t: e4 + ' — [ISO : ' + iso + ']'});
   } else if (iso > 800) {
-    const sev = iso >= 3200 ? 'diag-bad' : 'diag-warn';
-    let effet;
-    if      (iso >= 25600) effet = 'Bruit numérique extrême, image granuleuse et inexploitable';
-    else if (iso >= 12800) effet = 'Bruit numérique très fort, détails noyés dans le grain';
-    else if (iso >= 6400)  effet = 'Bruit important, couleurs altérées et détails perdus';
-    else if (iso >= 3200)  effet = 'Grain fort et bruit chromatique très perceptible';
-    else                   effet = 'Grain visible, bruit chromatique dans les zones sombres';
-    diags.push({c: sev, t: effet + ' — [ISO : ' + iso + ']'});
+    var sev4 = iso >= 3200 ? 'diag-bad' : 'diag-warn';
+    var e5;
+    if      (iso >= 25600) e5 = 'Bruit numérique extrême, image granuleuse et inexploitable';
+    else if (iso >= 12800) e5 = 'Bruit numérique très fort, détails noyés dans le grain';
+    else if (iso >= 6400)  e5 = 'Bruit important, couleurs altérées et détails perdus';
+    else if (iso >= 3200)  e5 = 'Grain fort et bruit chromatique très perceptible';
+    else                   e5 = 'Grain visible, bruit chromatique dans les zones sombres';
+    diags.push({c: sev4, t: e5 + ' — [ISO : ' + iso + ']'});
   }
-
-  // Exposition globale
-  const evStr = 'ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture;
+  var evStr = 'ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture;
   if      (totalEV < -2.2) diags.push({c:'diag-bad',  t:'Image quasiment noire, sous-exposition sévère — [' + evStr + ']'});
   else if (totalEV < -1.0) diags.push({c:'diag-bad',  t:'Image trop sombre, détails perdus dans les ombres — [' + evStr + ']'});
   else if (totalEV < -0.4) diags.push({c:'diag-warn', t:'Image légèrement sous-exposée — [' + evStr + ']'});
   else if (totalEV >  2.2) diags.push({c:'diag-bad',  t:'Hautes lumières totalement brûlées, surexposition sévère — [' + evStr + ']'});
   else if (totalEV >  1.0) diags.push({c:'diag-bad',  t:'Image trop claire, zones lumineuses inexploitables — [' + evStr + ']'});
   else if (totalEV >  0.4) diags.push({c:'diag-warn', t:'Image légèrement surexposée — [' + evStr + ']'});
-
   return diags;
 }
 
-window.addEventListener('resize', () => setTimeout(render, 80));
+/* PLEIN ÉCRAN */
+document.getElementById('fullscreenBtn').addEventListener('pointerdown', function(e) {
+  e.preventDefault();
+  var el = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  }
+});
+
+window.addEventListener('resize', function(){ setTimeout(render, 80); });
 render();
 </script>
 </body>
