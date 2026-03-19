@@ -556,23 +556,30 @@ function render() {
 
     /* 2. Traînées paraboliques du personnage (trajectoire de saut) */
     if (hikerImg.complete && hikerImg.naturalWidth > 0) {
-      var steps = 0, shiftX = 0, shiftY = 0;
-      if      (speed <= 2)   { steps = 32; shiftX = 360; shiftY = 110; }
-      else if (speed <= 4)   { steps = 26; shiftX = 232; shiftY = 72;  }
-      else if (speed <= 8)   { steps = 20; shiftX = 150; shiftY = 46;  }
-      else if (speed <= 15)  { steps = 15; shiftX = 93;  shiftY = 29;  }
-      else if (speed <= 30)  { steps = 11; shiftX = 57;  shiftY = 18;  }
-      else if (speed <= 60)  { steps = 7;  shiftX = 30;  shiftY = 9;   }
-      else if (speed <= 250) { steps = 4;  shiftX = 10;  shiftY = 3;   }
+      var steps = 0, totalX = 0;
+      if      (speed <= 2)   { steps = 32; totalX = 360; }
+      else if (speed <= 4)   { steps = 26; totalX = 232; }
+      else if (speed <= 8)   { steps = 20; totalX = 150; }
+      else if (speed <= 15)  { steps = 15; totalX = 93;  }
+      else if (speed <= 30)  { steps = 11; totalX = 57;  }
+      else if (speed <= 60)  { steps = 7;  totalX = 30;  }
+      else if (speed <= 250) { steps = 4;  totalX = 10;  }
+
+      /* Courbure parabolique absolue : le bout de la traînée est toujours
+         à totalY pixels plus bas que le sauteur, quelle que soit la vitesse.
+         totalY est proportionnel à totalX² pour que les courbes se superposent. */
+      var curvature = 0.00045; /* px vertical par px horizontal au carré */
+      var totalY = curvature * totalX * totalX;
+
+      var scaleX = c.width  / hikerImg.naturalWidth;
+      var scaleY = c.height / hikerImg.naturalHeight;
+
       if (steps > 0) {
-        var scaleX = c.width  / hikerImg.naturalWidth;
-        var scaleY = c.height / hikerImg.naturalHeight;
-        /* Copies de la plus lointaine (t=1) à la plus proche (t→0) */
         for (var i = steps - 1; i >= 1; i--) {
-          var t = i / (steps - 1); /* 1 = plus lointaine, ~0 = plus proche */
-          /* Parabole : dx linéaire vers la gauche, dy quadratique vers le bas */
-          var dx = -t * shiftX * scaleX;
-          var dy =  t * t * shiftY * scaleY; /* plus bas dans le passé */
+          var t = i / (steps - 1); /* 1 = plus lointain, ~0 = plus proche */
+          /* dx et dy définis en pixels source, mis à l'échelle canvas */
+          var dx = -t * totalX * scaleX;
+          var dy =  t * t * totalY * scaleY;
           var alpha = 0.48 * (1 - t * 0.82);
           ctx.save();
           ctx.globalAlpha = alpha;
@@ -581,11 +588,22 @@ function render() {
           ctx.restore();
         }
       }
-      /* Personnage net à sa position réelle */
+
+      /* Sauteur final : flou proportionnel à la lenteur */
+      var hikerBlur = 0;
+      if      (speed <= 2)   hikerBlur = 14;
+      else if (speed <= 4)   hikerBlur = 10;
+      else if (speed <= 8)   hikerBlur = 7;
+      else if (speed <= 15)  hikerBlur = 4.5;
+      else if (speed <= 30)  hikerBlur = 2.5;
+      else if (speed <= 60)  hikerBlur = 1.2;
+      else if (speed <= 250) hikerBlur = 0.4;
       ctx.save();
+      if (hikerBlur > 0) ctx.filter = 'blur(' + hikerBlur + 'px)';
       ctx.globalCompositeOperation = 'multiply';
       ctx.drawImage(hikerImg, 0, 0, c.width, c.height);
       ctx.restore();
+      ctx.filter = 'none';
     }
 
     /* 3. Flou de diffraction (grande ouverture) */
