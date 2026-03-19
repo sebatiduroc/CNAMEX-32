@@ -392,9 +392,10 @@ function playBip(freq, dur) {
 }
 
 /* ADJUST */
+var paramMax = { iso: isoValues.length - 1, speed: speedValues.length - 1, aperture: apertureValues.length - 1 };
 function adjust(param, dir) {
   var prev = state[param];
-  state[param] = Math.max(0, Math.min(9, state[param] + dir));
+  state[param] = Math.max(0, Math.min(paramMax[param], state[param] + dir));
   if (state[param] !== prev) playBip(dir > 0 ? 1200 : 500, 0.08);
   render();
 }
