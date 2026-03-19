@@ -166,10 +166,40 @@
   }
   .welcome-go-btn:hover { background: #ffaa22; }
   .welcome-go-btn:active { background: #cc7700; transform: scale(0.97); }
+
+  /* OVERLAY DE LANCEMENT */
+  #launchScreen {
+    position: fixed; inset: 0; z-index: 1000;
+    background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace;
+  }
+  .launch-btn {
+    background: transparent;
+    border: 2px solid #f90;
+    color: #f90;
+    font-family: 'Courier New', monospace;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 4px;
+    padding: 22px 48px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s, color 0.2s, transform 0.1s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .launch-btn:hover  { background: #f90; color: #000; }
+  .launch-btn:active { transform: scale(0.96); }
 </style>
 </head>
 <body>
-<div id="welcomeScreen">
+<div id="launchScreen">
+  <button class="launch-btn" id="launchBtn">Lancer la simulation</button>
+</div>
+
+<div id="welcomeScreen" style="display:none;">
   <div class="welcome-card">
     <div class="welcome-logo">CNAMEX-32</div>
     <div class="welcome-sub">SIMULATEUR APPAREIL PHOTO</div>
@@ -653,11 +683,17 @@ function buildDiags(iso, speed, aperture) {
   return diags;
 }
 
-/* ÉCRAN D'ACCUEIL */
-document.getElementById('welcomeGoBtn').addEventListener('click', function() {
+/* BOUTON DE LANCEMENT */
+document.getElementById('launchBtn').addEventListener('click', function() {
   var el = document.documentElement;
   if (el.requestFullscreen) el.requestFullscreen().catch(function(){});
   else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  document.getElementById('launchScreen').style.display = 'none';
+  document.getElementById('welcomeScreen').style.display = 'flex';
+});
+
+/* ÉCRAN D'ACCUEIL */
+document.getElementById('welcomeGoBtn').addEventListener('click', function() {
   document.getElementById('welcomeScreen').style.display = 'none';
   startBatteryDrain();
 });
