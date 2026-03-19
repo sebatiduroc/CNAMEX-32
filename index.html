@@ -318,6 +318,7 @@
 </div>
 
 <div id="shutterOverlay">
+  <canvas id="confettiCanvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:101;"></canvas>
   <div class="shutter-card">
     <div class="diap-label">ANALYSE DE LA PRISE DE VUE</div>
     <div class="diap-sub bad" id="diapSub">MAUVAIS PARAMÈTRES DE PRISE DE VUE</div>
@@ -345,6 +346,9 @@ hikerImg.onerror = render;
 
 const shutterAudio = new Audio('obturateur.mp3');
 shutterAudio.preload = 'auto';
+
+const victoireAudio = new Audio('victoire.wav');
+victoireAudio.preload = 'auto';
 
 function playShutter(isGood) {
   shutterAudio.currentTime = 0;
@@ -486,6 +490,9 @@ document.getElementById('shutterBtn').addEventListener('pointerdown', function(e
     subEl.className   = 'diap-sub good';
     diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
     diagBox.innerHTML = '<span style="color:#555;font-size:9px;letter-spacing:2px;">DERNIÈRE TENTATIVE</span><br><span class="diag-good">✶ ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + ' — Correct !</span>';
+    launchConfetti();
+    victoireAudio.currentTime = 0;
+    victoireAudio.play().catch(function(){});
   } else {
     subEl.textContent = 'MAUVAIS PARAMÈTRES DE PRISE DE VUE';
     subEl.className   = 'diap-sub bad';
@@ -499,6 +506,7 @@ document.getElementById('shutterBtn').addEventListener('pointerdown', function(e
 document.getElementById('shutterOverlay').addEventListener('pointerdown', function(e) {
   e.preventDefault();
   this.classList.remove('show');
+  stopConfetti();
 });
 
 /* RENDU */
@@ -750,6 +758,67 @@ document.getElementById('fullscreenBtn').addEventListener('pointerdown', functio
 });
 
 window.addEventListener('resize', function(){ setTimeout(render, 80); });
+
+/* CONFETTIS */
+var confettiParticles = [];
+var confettiRAF = null;
+var confettiColors = ['#f90','#4f4','#f44','#4af','#f4f','#ff4','#4ff','#fa0'];
+
+function launchConfetti() {
+  var cc = document.getElementById('confettiCanvas');
+  cc.width  = window.innerWidth;
+  cc.height = window.innerHeight;
+  confettiParticles = [];
+  for (var i = 0; i < 180; i++) {
+    confettiParticles.push({
+      x:     Math.random() * cc.width,
+      y:     -10 - Math.random() * 200,
+      w:     6 + Math.random() * 8,
+      h:     3 + Math.random() * 4,
+      color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+      vx:    (Math.random() - 0.5) * 3,
+      vy:    2.5 + Math.random() * 3.5,
+      angle: Math.random() * Math.PI * 2,
+      spin:  (Math.random() - 0.5) * 0.18,
+      decay: 0.97 + Math.random() * 0.02
+    });
+  }
+  if (confettiRAF) cancelAnimationFrame(confettiRAF);
+  animateConfetti();
+}
+
+function animateConfetti() {
+  var cc = document.getElementById('confettiCanvas');
+  var ctx5 = cc.getContext('2d');
+  ctx5.clearRect(0, 0, cc.width, cc.height);
+  var alive = false;
+  for (var i = 0; i < confettiParticles.length; i++) {
+    var p = confettiParticles[i];
+    p.x     += p.vx;
+    p.y     += p.vy;
+    p.vy    *= p.decay;
+    p.angle += p.spin;
+    ctx5.save();
+    ctx5.translate(p.x, p.y);
+    ctx5.rotate(p.angle);
+    ctx5.fillStyle = p.color;
+    ctx5.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    ctx5.restore();
+    if (p.y < cc.height + 20) alive = true;
+  }
+  if (alive) {
+    confettiRAF = requestAnimationFrame(animateConfetti);
+  } else {
+    stopConfetti();
+  }
+}
+
+function stopConfetti() {
+  if (confettiRAF) { cancelAnimationFrame(confettiRAF); confettiRAF = null; }
+  var cc = document.getElementById('confettiCanvas');
+  if (cc) cc.getContext('2d').clearRect(0, 0, cc.width, cc.height);
+  confettiParticles = [];
+}
 
 render();
 </script>
