@@ -536,8 +536,9 @@ function render() {
   /* Fond noir systématique */
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, c.width, c.height);
+
+  /* 1. Fond */
   if (img.complete && img.naturalWidth > 0) {
-    /* 1. Fond — léger flou de bougé caméra selon vitesse */
     var camBlur = 0;
     if      (speed <= 2)   camBlur = 9.0;
     else if (speed <= 4)   camBlur = 5.8;
@@ -555,9 +556,14 @@ function render() {
     } else {
       ctx.drawImage(img, 0, 0, c.width, c.height);
     }
+  } else {
+    ctx.fillStyle = '#111'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = '#555'; ctx.font = '13px Courier New';
+    ctx.fillText('Placez background.jpg et hiker.png dans le meme dossier', 18, c.height/2);
+  }
 
-    /* 2. Traînées paraboliques du personnage (trajectoire de saut) */
-    if (hikerImg.complete && hikerImg.naturalWidth > 0) {
+  /* 2. Traînées paraboliques du personnage (trajectoire de saut) */
+  if (hikerImg.complete && hikerImg.naturalWidth > 0) {
       var steps = 0, totalX = 0;
       if      (speed <= 2)   { steps = 32; totalX = 360; }
       else if (speed <= 4)   { steps = 26; totalX = 232; }
@@ -603,7 +609,8 @@ function render() {
       ctx.filter = 'none';
     }
 
-    /* 3. Flou de diffraction (grande ouverture) */
+  /* 3. Flou de diffraction (grande ouverture) */
+  if (img.complete && img.naturalWidth > 0) {
     var dBlur = 0;
     if      (aperture >= 32) dBlur = 10;
     else if (aperture >= 22) dBlur = 7;
@@ -614,36 +621,32 @@ function render() {
       ctx.drawImage(img, 0, 0, c.width, c.height);
       ctx.restore(); ctx.filter = 'none';
     }
+  }
 
-    /* 4. Voile expo */
-    ctx.save();
-    if (totalEV < -0.35) {
-      ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.97, Math.abs(totalEV) * 0.38) + ')';
-      ctx.fillRect(0, 0, c.width, c.height);
-    } else if (totalEV > 0.35) {
-      ctx.fillStyle = 'rgba(255,255,255,' + Math.min(0.95, totalEV * 0.22) + ')';
-      ctx.fillRect(0, 0, c.width, c.height);
-    }
-    ctx.restore();
+  /* 4. Voile expo */
+  ctx.save();
+  if (totalEV < -0.35) {
+    ctx.fillStyle = 'rgba(0,0,0,' + Math.min(0.97, Math.abs(totalEV) * 0.38) + ')';
+    ctx.fillRect(0, 0, c.width, c.height);
+  } else if (totalEV > 0.35) {
+    ctx.fillStyle = 'rgba(255,255,255,' + Math.min(0.95, totalEV * 0.22) + ')';
+    ctx.fillRect(0, 0, c.width, c.height);
+  }
+  ctx.restore();
 
-    /* 5. Grain ISO */
-    var grainMap = { 1600:16, 3200:30, 6400:50, 12800:78, 25600:120 };
-    var grain = grainMap[iso] || 0;
-    if (grain > 0) {
-      var id = ctx.getImageData(0, 0, c.width, c.height);
-      var d  = id.data;
-      for (var j = 0; j < d.length; j += 4) {
-        var g2 = (Math.random() - 0.5) * grain;
-        d[j]   = Math.min(255, Math.max(0, d[j]   + g2));
-        d[j+1] = Math.min(255, Math.max(0, d[j+1] + g2));
-        d[j+2] = Math.min(255, Math.max(0, d[j+2] + g2));
-      }
-      ctx.putImageData(id, 0, 0);
+  /* 5. Grain ISO */
+  var grainMap = { 1600:16, 3200:30, 6400:50, 12800:78, 25600:120 };
+  var grain = grainMap[iso] || 0;
+  if (grain > 0) {
+    var id = ctx.getImageData(0, 0, c.width, c.height);
+    var d  = id.data;
+    for (var j = 0; j < d.length; j += 4) {
+      var g2 = (Math.random() - 0.5) * grain;
+      d[j]   = Math.min(255, Math.max(0, d[j]   + g2));
+      d[j+1] = Math.min(255, Math.max(0, d[j+1] + g2));
+      d[j+2] = Math.min(255, Math.max(0, d[j+2] + g2));
     }
-  } else {
-    ctx.fillStyle = '#111'; ctx.fillRect(0, 0, c.width, c.height);
-    ctx.fillStyle = '#555'; ctx.font = '13px Courier New';
-    ctx.fillText('Placez background.jpg et hiker.png dans le meme dossier', 18, c.height/2);
+    ctx.putImageData(id, 0, 0);
   }
 }
 
