@@ -66,8 +66,11 @@
     padding: 10px 0; font-family: monospace;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    user-select: none;
+    user-select: none; -webkit-user-select: none;
+    outline: none;
+    -webkit-touch-callout: none;
   }
+  .ctrl-btn:focus { outline: none; }
   .ctrl-btn:disabled { opacity: 0.25; cursor: default; background: #1a1a1a; }
   .bottom-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px; flex-shrink: 0; }
   .shutter-btn {
@@ -76,7 +79,8 @@
     display: flex; align-items: center; justify-content: center;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    user-select: none;
+    user-select: none; -webkit-user-select: none;
+    outline: none; -webkit-touch-callout: none;
   }
   .shutter-btn:active { background: #555; }
   .shutter-inner { width: 40px; height: 40px; border-radius: 50%; background: #555; border: 2px solid #777; pointer-events: none; }
@@ -196,7 +200,7 @@
 </head>
 <body>
 <div id="launchScreen">
-  <button class="launch-btn" id="launchBtn">Lancer la simulation</button>
+  <button tabindex="-1" class="launch-btn" id="launchBtn">Lancer la simulation</button>
 </div>
 
 <div id="welcomeScreen" style="display:none;">
@@ -222,7 +226,7 @@
         <span>L'objectif : trouver les <strong style="color:#f90">bons réglages</strong> pour une photo nette et bien exposée !</span>
       </li>
     </ul>
-    <button class="welcome-go-btn" id="welcomeGoBtn">C'est parti mon kiki ! 🚀</button>
+    <button tabindex="-1" class="welcome-go-btn" id="welcomeGoBtn">C'est parti mon kiki ! 🚀</button>
   </div>
 </div>
 
@@ -268,24 +272,24 @@
           <div class="ctrl-label">ISO</div>
           <div class="ctrl-value-display" id="isoDisplay">25600</div>
           <div class="ctrl-buttons">
-            <button class="ctrl-btn" id="iso-minus">&#8722;</button>
-            <button class="ctrl-btn" id="iso-plus">+</button>
+            <button tabindex="-1" class="ctrl-btn" id="iso-minus">&#8722;</button>
+            <button tabindex="-1" class="ctrl-btn" id="iso-plus">+</button>
           </div>
         </div>
         <div class="ctrl-group">
           <div class="ctrl-label">Vitesse</div>
           <div class="ctrl-value-display" id="speedDisplay">1/2</div>
           <div class="ctrl-buttons">
-            <button class="ctrl-btn" id="speed-minus">&#8722;</button>
-            <button class="ctrl-btn" id="speed-plus">+</button>
+            <button tabindex="-1" class="ctrl-btn" id="speed-minus">&#8722;</button>
+            <button tabindex="-1" class="ctrl-btn" id="speed-plus">+</button>
           </div>
         </div>
         <div class="ctrl-group">
           <div class="ctrl-label">Ouverture</div>
           <div class="ctrl-value-display" id="apertureDisplay">f/32</div>
           <div class="ctrl-buttons">
-            <button class="ctrl-btn" id="aperture-minus">&#8722;</button>
-            <button class="ctrl-btn" id="aperture-plus">+</button>
+            <button tabindex="-1" class="ctrl-btn" id="aperture-minus">&#8722;</button>
+            <button tabindex="-1" class="ctrl-btn" id="aperture-plus">+</button>
           </div>
         </div>
       </div>
@@ -295,7 +299,7 @@
           <span id="battText">65%</span>
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <button class="auto-btn" id="autoBtn">AUTO</button>
+          <button tabindex="-1" class="auto-btn" id="autoBtn">AUTO</button>
           <div class="shutter-btn" id="shutterBtn" title="Déclencher">
             <div class="shutter-inner"></div>
           </div>
@@ -682,6 +686,13 @@ function buildDiags(iso, speed, aperture) {
   else if (totalEV >  0.4) diags.push({c:'diag-warn', t:'Image légèrement surexposée — [' + evStr + ']'});
   return diags;
 }
+
+/* ANTI-POPUP IOS PLEIN ÉCRAN — empêche tout focus clavier */
+document.addEventListener('focusin', function(e) {
+  if (e.target && typeof e.target.blur === 'function') {
+    e.target.blur();
+  }
+});
 
 /* BOUTON DE LANCEMENT */
 document.getElementById('launchBtn').addEventListener('click', function() {
