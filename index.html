@@ -528,12 +528,12 @@ function render() {
   if (img.complete && img.naturalWidth > 0) {
     /* 1. Fond — léger flou de bougé caméra selon vitesse */
     var camBlur = 0;
-    if      (speed <= 2)   camBlur = 4.5;
-    else if (speed <= 4)   camBlur = 3.5;
-    else if (speed <= 8)   camBlur = 2.5;
-    else if (speed <= 15)  camBlur = 1.8;
-    else if (speed <= 30)  camBlur = 1.2;
-    else if (speed <= 60)  camBlur = 0.6;
+    if      (speed <= 2)   camBlur = 9.0;
+    else if (speed <= 4)   camBlur = 5.8;
+    else if (speed <= 8)   camBlur = 3.7;
+    else if (speed <= 15)  camBlur = 2.3;
+    else if (speed <= 30)  camBlur = 1.4;
+    else if (speed <= 60)  camBlur = 0.7;
     else if (speed <= 250) camBlur = 0.2;
     if (camBlur > 0) {
       ctx.save();
@@ -548,13 +548,13 @@ function render() {
     /* 2. Traînées du personnage vers la gauche (il se déplace vers la droite) */
     if (hikerImg.complete && hikerImg.naturalWidth > 0) {
       var steps = 0, shift = 0;
-      if      (speed <= 2)   { steps = 28; shift = 120; }
-      else if (speed <= 4)   { steps = 22; shift = 90;  }
-      else if (speed <= 8)   { steps = 17; shift = 65;  }
-      else if (speed <= 15)  { steps = 13; shift = 45;  }
-      else if (speed <= 30)  { steps = 9;  shift = 28;  }
-      else if (speed <= 60)  { steps = 6;  shift = 14;  }
-      else if (speed <= 250) { steps = 3;  shift = 5;   }
+      if      (speed <= 2)   { steps = 32; shift = 240; }
+      else if (speed <= 4)   { steps = 26; shift = 155; }
+      else if (speed <= 8)   { steps = 20; shift = 100; }
+      else if (speed <= 15)  { steps = 15; shift = 62;  }
+      else if (speed <= 30)  { steps = 11; shift = 38;  }
+      else if (speed <= 60)  { steps = 7;  shift = 20;  }
+      else if (speed <= 250) { steps = 4;  shift = 7;   }
       if (steps > 0) {
         var scaleX = c.width / hikerImg.naturalWidth;
         /* Traînées : copies décalées vers la gauche (dx négatif), les plus lointaines d'abord */
