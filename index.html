@@ -491,8 +491,8 @@ document.getElementById('shutterBtn').addEventListener('pointerdown', function(e
   if (isGood) {
     subEl.textContent = '✶ PARAMÈTRES CORRECTS ✶';
     subEl.className   = 'diap-sub good';
-    diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + (1/speed) + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
-    diagBox.innerHTML = '<span style="color:#555;font-size:9px;letter-spacing:2px;">DERNIÈRE TENTATIVE</span><br><span class="diag-good">✶ ISO ' + iso + ' · 1/' + (1/speed) + 's · f/' + aperture + ' — Correct !</span>';
+    diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + fmtSpeed(speed) + ' · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
+    diagBox.innerHTML = '<span style="color:#555;font-size:9px;letter-spacing:2px;">DERNIÈRE TENTATIVE</span><br><span class="diag-good">✶ ISO ' + iso + ' · 1/' + fmtSpeed(speed) + ' · f/' + aperture + ' — Correct !</span>';
     launchConfetti();
     victoireAudio.currentTime = 0;
     victoireAudio.play().catch(function(){});
@@ -501,7 +501,7 @@ document.getElementById('shutterBtn').addEventListener('pointerdown', function(e
     subEl.className   = 'diap-sub bad';
     var diags = buildDiags(iso, speed, aperture);
     diagsEl.innerHTML = diags.map(function(d){ return '<span class="' + d.c + '">▸ ' + d.t + '</span>'; }).join('<br>');
-    diagBox.innerHTML = '<span style="color:#555;font-size:9px;letter-spacing:2px;">DERNIÈRE TENTATIVE</span><br><span class="diag-warn">ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + '</span>';
+    diagBox.innerHTML = '<span style="color:#555;font-size:9px;letter-spacing:2px;">DERNIÈRE TENTATIVE</span><br><span class="diag-warn">ISO ' + iso + ' · 1/' + fmtSpeed(speed) + ' · f/' + aperture + '</span>';
   }
   document.getElementById('shutterOverlay').classList.add('show');
 });
