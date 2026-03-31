@@ -491,7 +491,7 @@ document.getElementById('shutterBtn').addEventListener('pointerdown', function(e
   if (isGood) {
     subEl.textContent = '✶ PARAMÈTRES CORRECTS ✶';
     subEl.className   = 'diap-sub good';
-    diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + 1/speed + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
+    diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + (1/speed) + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
     diagBox.innerHTML = '<span style="color:#555;font-size:9px;letter-spacing:2px;">DERNIÈRE TENTATIVE</span><br><span class="diag-good">✶ ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + ' — Correct !</span>';
     launchConfetti();
     victoireAudio.currentTime = 0;
