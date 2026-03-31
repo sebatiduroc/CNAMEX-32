@@ -491,7 +491,7 @@ document.getElementById('shutterBtn').addEventListener('pointerdown', function(e
   if (isGood) {
     subEl.textContent = '✶ PARAMÈTRES CORRECTS ✶';
     subEl.className   = 'diap-sub good';
-    diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
+    diagsEl.innerHTML = '<div class="code-reveal">6</div><span class="diag-good">◆ ISO ' + iso + ' · 1/' + 1/speed + 's · f/' + aperture + ' — combinaison optimale. Sujet figé, bruit maîtrisé, exposition équilibrée.</span>';
     diagBox.innerHTML = '<span style="color:#555;font-size:9px;letter-spacing:2px;">DERNIÈRE TENTATIVE</span><br><span class="diag-good">✶ ISO ' + iso + ' · 1/' + speed + 's · f/' + aperture + ' — Correct !</span>';
     launchConfetti();
     victoireAudio.currentTime = 0;
@@ -674,7 +674,7 @@ function render() {
   }
 }
 
-function buildDiags(iso, speed, aperture) {
+function optimale(iso, speed, aperture) {
   var isoEV      =  Math.log2(iso / 800);
   var speedEV    =  Math.log2(speed / (1/1000)); /* référence 1/1000s */
   var apertureEV = -2 * Math.log2(aperture / 2.8);
